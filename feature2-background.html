@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chaos Background</title>
+<style>
+body{
+margin:0;
+
+
+padding:0;
+overflow:hidden;
+
+
+background:#000;
+}
+
+#canvas{
+
+
+display:block;
+}
+
+
+#fps{
+position:absolute;
+
+
+top:10px;
+left:10px;
+color:#0f0;
+
+
+font-family:monospace;
+font-size:12px;
+}
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+
+<div id="fps">FPS: <span id="fpsVal">60</span></div>
+
+
+<script src="physics.js"></script>
+<script src="euler.js"></script>
+
+
+<script src="canvas-utils.js"></script>
+
+<script>
+const canvas=document.getElementById('canvas')
+
+
+const ctx=canvas.getContext('2d')
+
+canvas.width=window.innerWidth
+
+
+canvas.height=window.innerHeight
+
+const centerX=canvas.width/2
+
+
+const centerY=canvas.height/2
+
+
+
+const pendulumCount=50
+
+
+const pendulums=[]
+
+for(let i=0;i<pendulumCount;i++){
+
+
+pendulums.push({
+theta1:Math.random()*Math.PI*2,
+
+
+theta2:Math.random()*Math.PI*2,
+omega1:(Math.random()-0.5)*4,
+
+
+omega2:(Math.random()-0.5)*4,
+m1:1,
+
+
+m2:1,
+L1:80+Math.random()*40,
+
+
+L2:80+Math.random()*40
+})
+}
+
+
+
+
+const dt=0.08
+
+
+const collisionThreshold=20
+const collisionThresholdSq=collisionThreshold*collisionThreshold
+
+
+let lastTime=performance.now()
+
+
+let frameCount=0
+let fpsTime=0
+
+
+function update(){
+
+
+for(let p of pendulums){
+integrate_euler(p,dt)
+
+
+}
+
+
+for(let i=0;i<pendulums.length;i++){
+
+
+for(let j=i+1;j<pendulums.length;j++){
+const coords1=polarToCartesian(
+
+
+pendulums[i].theta1,pendulums[i].theta2,
+pendulums[i].L1,pendulums[i].L2,
+
+
+centerX,centerY
+)
+
+
+const coords2=polarToCartesian(
+pendulums[j].theta1,pendulums[j].theta2,
+
+
+pendulums[j].L1,pendulums[j].L2,
+centerX,centerY
+
+
+)
+
+const dx=coords1.x2-coords2.x2
+
+
+const dy=coords1.y2-coords2.y2
+const distSq=dx*dx+dy*dy
+
+if(distSq<collisionThresholdSq){
+
+
+pendulums[i].omega1*=-0.9
+pendulums[i].omega2*=-0.9
+
+
+pendulums[j].omega1+=0.1*(Math.random()-0.5)
+
+
+pendulums[j].omega2+=0.1*(Math.random()-0.5)
+}
+}
+}
+}
+
+
+
+
+function draw(){
+
+
+fadeCanvas(ctx,canvas.width,canvas.height,0.05)
+
+drawPendulumBatch(ctx,pendulums,centerX,centerY)
+
+
+}
+
+
+
+
+function animate(){
+const now=performance.now()
+
+
+const delta=now-lastTime
+lastTime=now
+
+update()
+
+
+draw()
+
+frameCount++
+
+
+fpsTime+=delta
+if(fpsTime>=1000){
+
+
+document.getElementById('fpsVal').textContent=frameCount
+frameCount=0
+
+
+fpsTime=0
+}
+
+requestAnimationFrame(animate)
+
+
+}
+
+
+clearCanvas(ctx,canvas.width,canvas.height)
+
+
+animate()
+
+console.log(" chaos background running")
+
+
+</script>
+
+</body>
+</html>
