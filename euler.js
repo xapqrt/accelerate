@@ -1,5 +1,6 @@
-// Euler integration - first order method
-// Fast but energy drifts over time
+// Euler integration
+
+//js energy draining
 
 
 function integrate_euler(state,dt){
@@ -11,7 +12,7 @@ state.omega1+=alphas.alpha1*dt
 state.omega2+=alphas.alpha2*dt
 }
 
-
+//so much maths goddamn it, have to do my hw too
 
 
 function integrate_euler_step(state,dt){
