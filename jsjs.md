@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CHAOS FORGE</title>
+<style>
+body{
+background:#000;
+color:#0f0;
+font-family:'Courier New',monospace;
+margin:0;
+padding:0;
+overflow:hidden;
+}
+
+#title{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:48px;
+text-align:center;
+text-shadow:0 0 10px #0f0;
+}
+
+
+@keyframes glitch{
+0%{transform:translate(-50%,-50%)}
+20%{transform:translate(-52%,-48%)}
+40%{transform:translate(-48%,-52%)}
+60%{transform:translate(-52%,-52%)}
+80%{transform:translate(-48%,-48%)}
+100%{transform:translate(-50%,-50%)}
+}
+
+.glitch{
+animation:glitch 0.3s infinite;
+}
+
+
+
+#subtitle{
+position:absolute;
+top:calc(50% + 60px);
+left:50%;
+transform:translateX(-50%);
+font-size:14px;
+color:#0a0;
+letter-spacing:2px;
+}
+
+
+#bg-canvas{
+position:absolute;
+top:0;
+left:0;
+z-index:-1;
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+
+<div id="title" class="glitch">CHAOS FORGE</div>
+<div id="subtitle">The L² Simulation Suite</div>
+
+
+
+
+<script>
+const canvas=document.getElementById('bg-canvas')
+const ctx=canvas.getContext('2d')
+
+canvas.width=window.innerWidth
+canvas.height=window.innerHeight
+
+
+ctx.fillStyle='#000'
+ctx.fillRect(0,0,canvas.width,canvas.height)
+
+
+
+console.log("🧬 init")
+</script>
+
+</body>
+</html>
