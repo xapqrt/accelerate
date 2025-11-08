@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pendulum Tic-Tac-Toe</title>
+
+
+<style>
+body{
+
+
+margin:0;
+padding:0;
+
+
+background:#000;
+color:#0f0;
+
+
+font-family:monospace;
+}
+
+#canvas{
+
+
+display:block;
+margin:20px auto;
+
+
+border:1px solid #0f0;
+}
+
+
+#status{
+
+
+text-align:center;
+font-size:18px;
+
+
+margin-top:20px;
+}
+
+button{
+
+
+background:#0f0;
+color:#000;
+
+
+border:none;
+padding:8px 16px;
+
+
+font-family:monospace;
+cursor:pointer;
+
+
+display:block;
+margin:10px auto;
+
+
+}
+</style>
+</head>
+
+
+<body>
+
+<canvas id="canvas" width="600" height="600"></canvas>
+
+
+<div id="status">Your turn</div>
+
+
+<button onclick="resetGame()">Reset</button>
+
+
+<script src="physics.js"></script>
+
+
+<script src="euler.js"></script>
+<script src="canvas-utils.js"></script>
+
+
+<script src="minimax.js"></script>
+
+<script>
+const canvas=document.getElementById('canvas')
+
+
+const ctx=canvas.getContext('2d')
+
+const cellSize=200
+
+
+const board=Array(9).fill(null)
+
+
+const pendulums=[]
+let gameOver=false
+
+
+let currentPlayer='X'
+
+
+const aiPlayer='O'
+const humanPlayer='X'
+
+
+
+
+function getCellCenter(index){
+
+
+const row=Math.floor(index/3)
+const col=index%3
+
+
+return{
+x:col*cellSize+cellSize/2,
+
+
+y:row*cellSize+cellSize/2
+}
+}
+
+
+
+
+function drawGrid(){
+
+
+ctx.strokeStyle='#0f0'
+ctx.lineWidth=2
+
+for(let i=1;i<3;i++){
+
+
+ctx.beginPath()
+
+
+ctx.moveTo(i*cellSize,0)
+ctx.lineTo(i*cellSize,canvas.height)
+
+
+ctx.stroke()
+
+ctx.beginPath()
+
+
+ctx.moveTo(0,i*cellSize)
+
+
+ctx.lineTo(canvas.width,i*cellSize)
+ctx.stroke()
+
+
+}
+}
+
+
+
+
+function drawBoard(){
+
+
+ctx.strokeStyle='#0f0'
+ctx.lineWidth=3
+
+for(let i=0;i<9;i++){
+
+
+if(board[i]==='X'){
+
+
+const {x,y}=getCellCenter(i)
+const size=40
+
+
+ctx.beginPath()
+ctx.moveTo(x-size,y-size)
+
+
+ctx.lineTo(x+size,y+size)
+
+
+ctx.moveTo(x+size,y-size)
+ctx.lineTo(x-size,y+size)
+
+
+ctx.stroke()
+}else if(board[i]==='O'){
+
+
+const {x,y}=getCellCenter(i)
+
+
+ctx.beginPath()
+ctx.arc(x,y,40,0,Math.PI*2)
+
+
+ctx.stroke()
+}
+}
+}
+
+
+
+
+function spawnPendulum(index,player){
+
+
+const {x,y}=getCellCenter(index)
+
+pendulums.push({
+
+
+theta1:Math.PI/4+Math.random()*Math.PI/2,
+
+
+theta2:Math.PI/4+Math.random()*Math.PI/2,
+omega1:(Math.random()-0.5)*1,
+
+
+omega2:(Math.random()-0.5)*1,
+
+
+m1:1,
+m2:1,
+
+
+L1:50,
+L2:50,
+
+
+centerX:x,
+centerY:y,
+
+
+player:player
+})
+}
+
+
+
+
+function updatePendulums(){
+
+
+for(let p of pendulums){
+
+
+integrate_euler(p,0.05)
+
+
+}
+}
+
+
+
+
+function drawPendulums(){
+
+
+for(let p of pendulums){
+const coords=polarToCartesian(p.theta1,p.theta2,p.L1,p.L2,p.centerX,p.centerY)
+
+
+ctx.strokeStyle=p.player==='X'?'#ff0000':'#0000ff'
+
+
+ctx.lineWidth=2
+ctx.beginPath()
+
+
+ctx.moveTo(p.centerX|0,p.centerY|0)
+
+
+ctx.lineTo(coords.x1|0,coords.y1|0)
+ctx.lineTo(coords.x2|0,coords.y2|0)
+
+
+ctx.stroke()
+
+ctx.fillStyle=p.player==='X'?'#ff0000':'#0000ff'
+
+
+ctx.beginPath()
+
+
+ctx.arc(coords.x2|0,coords.y2|0,4,0,Math.PI*2)
+ctx.fill()
+
+
+}
+}
+
+
+
+
+function handleClick(event){
+
+
+if(gameOver||currentPlayer!=='X')return
+
+const rect=canvas.getBoundingClientRect()
+
+
+const x=event.clientX-rect.left
+
+
+const y=event.clientY-rect.top
+
+const col=Math.floor(x/cellSize)
+
+
+const row=Math.floor(y/cellSize)
+
+
+const index=row*3+col
+
+if(index<0||index>8||board[index])return
+
+
+board[index]='X'
+
+
+spawnPendulum(index,'X')
+
+const winner=checkWinner(board)
+
+
+if(winner){
+
+
+gameOver=true
+document.getElementById('status').textContent=winner+' wins!'
+
+
+return
+}
+
+
+if(isBoardFull(board)){
+
+
+gameOver=true
+document.getElementById('status').textContent='Draw!'
+
+
+return
+
+
+}
+
+currentPlayer='O'
+
+
+document.getElementById('status').textContent='AI thinking...'
+
+setTimeout(aiMove,300)
+
+
+}
+
+
+
+
+function aiMove(){
+
+
+const move=getBestMove(board,aiPlayer,humanPlayer)
+
+board[move]='O'
+
+
+spawnPendulum(move,'O')
+
+const winner=checkWinner(board)
+
+
+if(winner){
+
+
+gameOver=true
+document.getElementById('status').textContent=winner+' wins!'
+
+
+return
+}
+
+if(isBoardFull(board)){
+
+
+gameOver=true
+
+
+document.getElementById('status').textContent='Draw!'
+return
+
+
+}
+
+currentPlayer='X'
+
+
+document.getElementById('status').textContent='Your turn'
+}
+
+
+
+
+function resetGame(){
+
+
+board.fill(null)
+pendulums.length=0
+
+
+gameOver=false
+
+
+currentPlayer='X'
+document.getElementById('status').textContent='Your turn'
+
+
+}
+
+
+
+
+function animate(){
+
+
+clearCanvas(ctx,canvas.width,canvas.height)
+
+drawGrid()
+
+
+drawBoard()
+
+
+updatePendulums()
+drawPendulums()
+
+
+requestAnimationFrame(animate)
+
+
+}
+
+
+canvas.addEventListener('click',handleClick)
+
+
+animate()
+
+console.log(" tictactoe loaded")
+
+
+</script>
+
+</body>
+</html>
