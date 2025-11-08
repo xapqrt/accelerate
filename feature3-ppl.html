@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pendulum Programming Language</title>
+
+
+<style>
+body{
+
+
+margin:0;
+padding:20px;
+
+
+background:#000;
+color:#0f0;
+
+
+font-family:monospace;
+}
+
+#title{
+
+
+text-align:center;
+font-size:24px;
+
+
+margin-bottom:20px;
+}
+
+
+#workspace{
+
+
+position:relative;
+width:800px;
+
+
+height:500px;
+border:2px solid #0f0;
+
+
+margin:20px auto;
+background:#0a0a0a;
+
+
+}
+
+.block{
+
+
+position:absolute;
+width:150px;
+
+
+padding:10px;
+border:2px solid;
+
+
+background:#000;
+cursor:move;
+
+
+user-select:none;
+}
+
+.block.input{
+
+
+border-color:#ff0;
+color:#ff0;
+
+
+}
+
+.block.adder{
+
+
+border-color:#0ff;
+
+
+color:#0ff;
+}
+
+.block.printer{
+
+
+border-color:#f0f;
+color:#f0f;
+
+
+}
+
+
+.block-title{
+
+
+font-weight:bold;
+margin-bottom:5px;
+
+
+}
+
+.block-value{
+
+
+margin-top:5px;
+
+
+}
+
+input[type="range"]{
+
+
+width:100%;
+}
+
+
+#palette{
+
+
+text-align:center;
+margin-bottom:10px;
+
+
+}
+
+#palette button{
+
+
+background:#0f0;
+color:#000;
+
+
+border:none;
+padding:8px 16px;
+
+
+margin:0 5px;
+font-family:monospace;
+
+
+cursor:pointer;
+}
+
+#palette button:hover{
+
+
+background:#0a0;
+}
+
+
+#output{
+
+
+width:800px;
+margin:20px auto;
+
+
+padding:10px;
+border:1px solid #0f0;
+
+
+min-height:60px;
+}
+
+#controls{
+
+
+text-align:center;
+margin-top:10px;
+
+
+}
+
+#controls button{
+
+
+background:#0f0;
+
+
+color:#000;
+border:none;
+
+
+padding:10px 20px;
+font-family:monospace;
+
+
+cursor:pointer;
+font-size:16px;
+
+
+}
+
+#controls button:hover{
+
+
+background:#0a0;
+}
+
+
+canvas{
+
+
+position:absolute;
+top:0;
+
+
+left:0;
+pointer-events:none;
+
+
+z-index:10;
+}
+</style>
+</head>
+
+
+<body>
+
+<div id="title">PENDULUM PROGRAMMING LANGUAGE</div>
+
+
+<div id="palette">
+
+
+<button onclick="createBlock('input')">+ INPUT</button>
+<button onclick="createBlock('adder')">+ ADDER</button>
+
+
+<button onclick="createBlock('printer')">+ PRINTER</button>
+</div>
+
+
+<div id="workspace">
+
+
+<canvas id="canvas" width="800" height="500"></canvas>
+</div>
+
+
+<div id="controls">
+
+
+<button onclick="executeProgram()">▶ RUN</button>
+<button onclick="clearWorkspace()">CLEAR</button>
+
+
+</div>
+
+<div id="output"></div>
+
+
+<script src="physics.js"></script>
+
+
+<script src="euler.js"></script>
+<script src="ppl-blocks.js"></script>
+
+
+<script src="ppl-render.js"></script>
+<script src="ppl-execute.js"></script>
+
+
+<script>
+
+
+function animate(){
+
+
+updatePendulums()
+drawPendulums()
+
+
+requestAnimationFrame(animate)
+}
+
+
+animate()
+
+
+console.log(" PPL loaded")
+</script>
+
+
+</body>
+</html>
