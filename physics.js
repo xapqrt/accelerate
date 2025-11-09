@@ -1,7 +1,5 @@
-//double pendulum eq of motion js gonna type em out what i saw and learned
 
-
-
+ //double pendulum eq of motion js gonna type em out what i saw and learned
 function computeAlphas(state){
 const {theta1,theta2,omega1,omega2,m1,m2,L1,L2}=state
 const g=9.81
@@ -23,8 +21,6 @@ const num1=-g*(2*m1+m2)*Math.sin(theta1)
 const alpha1=num1/denom1
 
 
-
-
 const denom2=L2*(2*m1+m2-m2*Math.cos(2*delta))
 
 const num2=2*sinDelta*(omega1*omega1*L1*(m1+m2)
@@ -33,10 +29,8 @@ const num2=2*sinDelta*(omega1*omega1*L1*(m1+m2)
 
 const alpha2=num2/denom2
 
-
 return {alpha1,alpha2}
 }
-
 
 
 
@@ -63,18 +57,15 @@ const g=9.81
 
 const cosDelta=Math.cos(theta1-theta2)
 
-
 const T=0.5*m1*(L1*omega1)**2
 +0.5*m2*((L1*omega1)**2+(L2*omega2)**2
 +2*L1*L2*omega1*omega2*cosDelta)
-
 
 const V=-(m1+m2)*g*L1*Math.cos(theta1)
 -m2*g*L2*Math.cos(theta2)
 
 return T+V
 }
-
 
 
 

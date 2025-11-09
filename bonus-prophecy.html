@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pendulum Prophecy</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#000;color:#fff;font-family:monospace;overflow:auto;min-height:100vh;padding:20px;}
+#bg-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;}
+#container{position:relative;z-index:1;max-width:1000px;margin:0 auto;}
+#title{text-align:center;font-size:32px;color:#fff;margin-bottom:10px;text-shadow:0 0 20px #8b00ff;}
+#subtitle{text-align:center;font-size:14px;color:#8b00ff;margin-bottom:30px;}
+#canvas{display:block;margin:0 auto;border:3px solid #8b00ff;background:rgba(0,0,0,0.95);box-shadow:0 0 30px rgba(139,0,255,0.5);}
+#question-box{background:#111;border:2px solid #8b00ff;padding:20px;margin:20px 0;border-radius:5px;}
+#question{width:100%;background:#222;border:2px solid #8b00ff;color:#fff;font-family:monospace;font-size:16px;padding:15px;resize:vertical;min-height:80px;}
+#question::placeholder{color:#666;}
+.prophecy-button{background:linear-gradient(45deg,#8b00ff,#ff00ff);color:#fff;border:none;padding:15px 30px;font-family:monospace;font-size:18px;cursor:pointer;margin:10px;font-weight:bold;border-radius:5px;box-shadow:0 0 20px rgba(139,0,255,0.5);transition:all 0.3s;}
+.prophecy-button:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(139,0,255,0.8);}
+.prophecy-button:active{transform:scale(0.95);}
+#answer-box{background:#111;border:2px solid #0ff;padding:20px;margin:20px 0;border-radius:5px;min-height:120px;display:none;}
+#answer{font-size:24px;text-align:center;color:#0ff;text-shadow:0 0 15px #0ff;line-height:1.6;font-weight:bold;}
+#prophecy-text{font-size:14px;text-align:center;color:#aaa;margin-top:15px;font-style:italic;}
+#controls{text-align:center;margin:20px 0;}
+.rune{display:inline-block;margin:0 20px;font-size:48px;opacity:0.5;transition:all 0.5s;cursor:pointer;}
+.rune.active{opacity:1;transform:scale(1.3) rotate(360deg);text-shadow:0 0 20px currentColor;}
+.rune.yes{color:#0f0;}
+.rune.no{color:#f00;}
+.rune.maybe{color:#ff0;}
+#hint{text-align:center;font-size:12px;color:#666;margin-top:10px;}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div id="container">
+<div id="title">🔮 PENDULUM PROPHECY 🔮</div>
+<div id="subtitle">Ask the chaos... if you dare</div>
+<canvas id="canvas" width="800" height="500"></canvas>
+<div id="question-box">
+<textarea id="question" placeholder="Ask a yes/no question to the pendulum oracle...&#10;&#10;Examples:&#10;- Will I succeed in my project?&#10;- Should I take this opportunity?&#10;- Is now the right time?"></textarea>
+</div>
+<div id="controls">
+<button class="prophecy-button" onclick="seekProphecy()">✨ SEEK PROPHECY ✨</button>
+<button class="prophecy-button" onclick="reset()" style="background:linear-gradient(45deg,#333,#666);">RESET</button>
+</div>
+<div id="answer-box">
+<div id="answer"></div>
+<div id="prophecy-text"></div>
+<div class="rune yes">☯</div>
+<div class="rune no">☠</div>
+<div class="rune maybe">⚡</div>
+</div>
+<div id="hint">The pendulum's chaos reveals truth through three mystical zones...</div>
+</div>
+<script src="physics.js"></script>
+<script src="euler.js"></script>
+<script src="canvas-utils.js"></script>
+<script>
+const cnv=document.getElementById('canvas');
+const ctx=cnv.getContext('2d');
+const cX=cnv.width/2;
+const cY=cnv.height/2;
+
+// main pendulum for prophecy
+const pend={
+theta1:Math.PI+0.1,
+theta2:Math.PI-0.1,
+omega1:0,
+omega2:0,
+m1:1,m2:1,
+L1:150,L2:150
+};
+
+let trail=[];
+let isAnimating=false;
+let t0=0;
+const PROPHECY_TIME=8000;  // 8 secs of chaos
+
+// BIG zones covering most of canvas (800x500)
+// pendulum can reach up to 300px from center (400,250)
+// so reachable area is roughly 100-700 x 0-500
+const zones=[
+{x:0,y:0,w:250,h:250,label:'YES',color:'#0f0',answer:'Yes'},        // top left
+{x:550,y:0,w:250,h:250,label:'NO',color:'#f00',answer:'No'},         // top right
+{x:200,y:250,w:400,h:250,label:'MAYBE',color:'#ff0',answer:'Maybe'}  // bottom center (bigger)
+];
+
+// prophecy messages (randomly selected)
+const prophecies={
+Yes:[
+'The pendulum swings toward YES! The chaos favors your path.',
+'Affirmative! The double pendulum\'s trajectory confirms it.',
+'YES - the chaotic motion reveals certainty in uncertainty.',
+'The oracle speaks: proceed with confidence!',
+'Absolutely YES! The pendulum has spoken through chaos.'
+],
+No:[
+'The pendulum denies! NO is written in its chaotic path.',
+'Negative. The double pendulum warns against this path.',
+'NO - the chaos reveals danger ahead.',
+'The oracle advises caution: the answer is NO.',
+'The pendulum rejects this course. NO.'
+],
+Maybe:[
+'MAYBE - the pendulum dances in uncertainty.',
+'The chaos is undecided... MAYBE seek more wisdom.',
+'MAYBE - the double pendulum reveals ambiguity.',
+'Neither yes nor no... the pendulum suggests patience.',
+'MAYBE - the answer lies between order and chaos.'
+]
+};
+
+function seekProphecy(){
+const q=document.getElementById('question').value.trim();
+if(!q){
+alert('Ask a question first!');
+return;
+}
+document.getElementById('answer-box').style.display='none';
+document.querySelectorAll('.rune').forEach(r=>r.classList.remove('active'));
+trail=[];
+
+
+// EXTREME randomness from question + time
+let seed=0
+for(let i=0;i<q.length;i++){
+seed+=q.charCodeAt(i)*(i+1)
+}
+seed+=Date.now()%10000  // add current time for true randomness!!
+
+
+// massive random initial conditions
+const r1=Math.random()
+const r2=Math.random()  
+const r3=Math.random()
+const r4=Math.random()
+
+pend.theta1=r1*Math.PI*2  // FULL range 0 to 2pi
+pend.theta2=r2*Math.PI*2
+pend.omega1=(r3-0.5)*4  // velocities -2 to +2 (reduced from 8)
+pend.omega2=(r4-0.5)*4
+
+console.log('🔮 prophecy seed:', seed)
+console.log('initial state:', pend.theta1, pend.theta2, pend.omega1, pend.omega2)
+
+isAnimating=true;
+t0=Date.now();
+}
+
+function reset(){
+// full random reset
+pend.theta1=Math.random()*Math.PI*2;
+pend.theta2=Math.random()*Math.PI*2;
+pend.omega1=(Math.random()-0.5)*6;
+pend.omega2=(Math.random()-0.5)*6;
+trail=[];
+isAnimating=false;
+document.getElementById('answer-box').style.display='none';
+document.querySelectorAll('.rune').forEach(r=>r.classList.remove('active'));
+}
+
+function update(){
+if(!isAnimating)return;
+
+
+integrate_euler(pend,0.04);
+
+const coords=polarToCartesian(pend.theta1,pend.theta2,pend.L1,pend.L2,cX,cY);
+trail.push({x:coords.x2,y:coords.y2});
+if(trail.length>300)trail.shift();
+
+
+if(Date.now()-t0>PROPHECY_TIME){
+isAnimating=false;
+revealProphecy(coords.x2,coords.y2);
+}
+}
+
+function revealProphecy(x,y){
+let answer='Maybe';  // default
+let foundZone=false
+
+
+// check which zone the pendulum landed in
+for(let zone of zones){
+if(x>=zone.x&&x<=zone.x+zone.w&&y>=zone.y&&y<=zone.y+zone.h){
+answer=zone.answer;
+foundZone=true
+break;
+}
+}
+
+console.log('🔮 pendulum landed at:', x.toFixed(1), y.toFixed(1))
+console.log('🔮 found zone?', foundZone, '→', answer)
+
+
+// pick random prophecy from array
+const prophecy=prophecies[answer][Math.floor(Math.random()*prophecies[answer].length)];
+
+// show result
+document.getElementById('answer').textContent=answer.toUpperCase();
+document.getElementById('answer').style.color=answer==='Yes'?'#0f0':answer==='No'?'#f00':'#ff0';
+document.getElementById('prophecy-text').textContent=prophecy;
+document.getElementById('answer-box').style.display='block';
+
+
+// activate rune
+const runeClass=answer.toLowerCase();
+document.querySelectorAll('.rune').forEach(r=>{
+if(r.classList.contains(runeClass)){
+r.classList.add('active');
+}
+});
+
+console.log('🔮 prophecy revealed:', answer, 'at', x, y)
+}
+
+// rendering stufff
+function render(){
+ctx.fillStyle='rgba(0,0,0,1)';
+ctx.fillRect(0,0,cnv.width,cnv.height);
+
+
+// draw zones
+zones.forEach(zone=>{
+ctx.strokeStyle=zone.color;
+ctx.lineWidth=2;
+ctx.strokeRect(zone.x,zone.y,zone.w,zone.h);
+ctx.fillStyle=zone.color+'33';  // 33 = alpha in hex
+ctx.fillRect(zone.x,zone.y,zone.w,zone.h);
+ctx.fillStyle=zone.color;
+ctx.font='bold 24px monospace';
+ctx.textAlign='center';
+ctx.fillText(zone.label,zone.x+zone.w/2,zone.y+zone.h/2+8);
+});
+
+
+// trail rendering (fading)
+if(trail.length>1){
+ctx.strokeStyle='#8b00ff';
+ctx.lineWidth=2;
+ctx.beginPath();
+for(let i=0;i<trail.length;i++){
+const alpha=i/trail.length;
+ctx.strokeStyle=`rgba(139,0,255,${alpha})`;
+if(i===0)ctx.moveTo(trail[i].x,trail[i].y);
+else ctx.lineTo(trail[i].x,trail[i].y);
+}
+ctx.stroke();
+}
+
+
+// draw pendulum
+const c=polarToCartesian(pend.theta1,pend.theta2,pend.L1,pend.L2,cX,cY);
+ctx.strokeStyle='#fff';
+ctx.lineWidth=4;
+ctx.beginPath();
+ctx.moveTo(cX,cY);
+ctx.lineTo(c.x1,c.y1);
+ctx.lineTo(c.x2,c.y2);
+ctx.stroke();
+
+
+// mass 1
+ctx.fillStyle='#0ff';
+ctx.beginPath();
+ctx.arc(c.x1,c.y1,8,0,Math.PI*2);
+ctx.fill();
+
+// mass 2
+ctx.fillStyle='#ff00ff';
+ctx.beginPath();
+ctx.arc(c.x2,c.y2,12,0,Math.PI*2);
+ctx.fill();
+
+
+// timer
+if(isAnimating){
+const elapsed=Date.now()-t0;
+const remaining=Math.max(0,PROPHECY_TIME-elapsed);
+ctx.fillStyle='#8b00ff';
+ctx.font='16px monospace';
+ctx.textAlign='center';
+ctx.fillText(`Consulting the chaos... ${(remaining/1000).toFixed(1)}s`,cX,40);
+}
+}
+
+// background pendulum chaos
+const bgCanvas=document.getElementById('bg-canvas');
+const bgCtx=bgCanvas.getContext('2d');
+bgCanvas.width=window.innerWidth;
+bgCanvas.height=window.innerHeight;
+const bgPendulums=[];
+
+
+// spawn 25 random background pendulums
+for(let i=0;i<25;i++){
+bgPendulums.push({
+theta1:Math.random()*Math.PI*2,
+theta2:Math.random()*Math.PI*2,
+omega1:(Math.random()-0.5)*2,
+omega2:(Math.random()-0.5)*2,
+m1:1,m2:1,
+L1:50+Math.random()*40,
+L2:50+Math.random()*40,
+x:Math.random()*window.innerWidth,
+y:Math.random()*window.innerHeight
+});
+}
+
+function updateBG(){
+fadeCanvas(bgCtx,bgCanvas.width,bgCanvas.height,0.05);
+for(let p of bgPendulums){
+integrate_euler(p,0.08);
+const c=polarToCartesian(p.theta1,p.theta2,p.L1,p.L2,p.x,p.y);
+bgCtx.strokeStyle='rgba(139,0,255,0.3)';
+bgCtx.lineWidth=1;
+bgCtx.beginPath();
+bgCtx.moveTo(p.x,p.y);
+bgCtx.lineTo(c.x1,c.y1);
+bgCtx.lineTo(c.x2,c.y2);
+bgCtx.stroke();
+}
+}
+
+function animate(){
+updateBG();
+update();
+render();
+requestAnimationFrame(animate);
+}
+
+animate();
+console.log('🔮 Pendulum Prophecy loaded');
+</script>
+</body>
+</html>

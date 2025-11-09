@@ -9,7 +9,8 @@ margin:0;
 
 
 padding:0;
-overflow:hidden;
+overflow:auto;
+min-height:100vh;
 
 
 background:#000;
@@ -68,11 +69,10 @@ const centerY=canvas.height/2
 
 
 
-const pendulumCount=50
-
-
+const pendulumCount=120  // way more pendulums for full chaos
 const pendulums=[]
 
+// spawn em all
 for(let i=0;i<pendulumCount;i++){
 
 
@@ -81,28 +81,27 @@ theta1:Math.random()*Math.PI*2,
 
 
 theta2:Math.random()*Math.PI*2,
-omega1:(Math.random()-0.5)*4,
+omega1:(Math.random()-0.5)*5,  // faster motion
 
 
-omega2:(Math.random()-0.5)*4,
+omega2:(Math.random()-0.5)*5,
 m1:1,
 
 
 m2:1,
-L1:80+Math.random()*40,
+L1:60+Math.random()*60,  // varied sizes
 
 
-L2:80+Math.random()*40
+L2:60+Math.random()*60
 })
 }
 
+console.log("spawned",pendulumCount,"pendulums")  // debug
 
 
 
-const dt=0.08
-
-
-const collisionThreshold=20
+const dt=0.1  // slightly faster sim
+const collisionThreshold=25  // bigger collision radius
 const collisionThresholdSq=collisionThreshold*collisionThreshold
 
 
@@ -115,13 +114,11 @@ let fpsTime=0
 
 function update(){
 
-
 for(let p of pendulums){
 integrate_euler(p,dt)
 
 
 }
-
 
 for(let i=0;i<pendulums.length;i++){
 
@@ -172,17 +169,14 @@ pendulums[j].omega2+=0.1*(Math.random()-0.5)
 
 
 
-
 function draw(){
 
-
-fadeCanvas(ctx,canvas.width,canvas.height,0.05)
+fadeCanvas(ctx,canvas.width,canvas.height,0.04)
 
 drawPendulumBatch(ctx,pendulums,centerX,centerY)
 
 
 }
-
 
 
 
@@ -222,8 +216,6 @@ clearCanvas(ctx,canvas.width,canvas.height)
 
 
 animate()
-
-console.log(" chaos background running")
 
 
 </script>

@@ -1,7 +1,6 @@
 // block management for the ppl
 
 
-
 let blocks=[]
 
 
@@ -11,7 +10,6 @@ let offsetX=0
 
 let offsetY=0
 let blockIdCounter=0
-
 
 
 
@@ -29,7 +27,6 @@ let innerHTML=''
 
 if(type==='input'){
 
-
 innerHTML=`
 <div class="block-title">INPUT</div>
 
@@ -44,7 +41,6 @@ oninput="updateBlockValue('${block.id}',this.value)">
 
 block.dataset.value='5'
 }else if(type==='adder'){
-
 
 innerHTML=`
 
@@ -75,7 +71,6 @@ block.innerHTML=innerHTML
 
 const workspace=document.getElementById('workspace')
 
-
 block.style.left='50px'
 block.style.top=(50+blocks.length*80)+'px'
 
@@ -102,10 +97,8 @@ pendulum:null
 
 if(type==='input'){
 
-
 spawnPendulum(block.id)
 }
-
 
 }
 

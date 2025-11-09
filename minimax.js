@@ -1,7 +1,6 @@
 // minimax algo for tictactor
 
 
-
 function checkWinner(board){
 const lines=[
 [0,1,2],[3,4,5],[6,7,8],
@@ -30,7 +29,6 @@ return null
 
 
 
-
 function isBoardFull(board){
 
 
@@ -41,7 +39,6 @@ if(!board[i])return false
 }
 return true
 }
-
 
 
 
@@ -61,7 +58,6 @@ return moves
 
 
 
-
 function minimax(board,depth,isMaximizing,aiPlayer,humanPlayer){
 const winner=checkWinner(board)
 
@@ -75,7 +71,6 @@ if(winner===humanPlayer)return depth-10
 if(isBoardFull(board))return 0
 
 if(isMaximizing){
-
 
 let bestScore=-Infinity
 for(let move of availableMoves(board)){
@@ -92,7 +87,6 @@ bestScore=Math.max(score,bestScore)
 }
 return bestScore
 }else{
-
 
 let bestScore=Infinity
 
@@ -115,9 +109,7 @@ return bestScore
 
 
 
-
 function getBestMove(board,aiPlayer,humanPlayer){
-
 
 if(Math.random()<0.6){
 const moves=availableMoves(board)
@@ -125,7 +117,6 @@ const moves=availableMoves(board)
 
 return moves[Math.floor(Math.random()*moves.length)]
 }
-
 
 let bestScore=-Infinity
 let bestMove=-1

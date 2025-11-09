@@ -3,7 +3,6 @@
 // canvas rendering utilities
 
 
-
 function drawPendulum(ctx,state,centerX,centerY){
 const {x1,y1,x2,y2}=polarToCartesian(
 state.theta1,state.theta2,
@@ -22,7 +21,6 @@ ctx.lineTo(x1|0,y1|0)
 ctx.lineTo(x2|0,y2|0)
 ctx.stroke()
 
-
 ctx.fillStyle='#fff'
 ctx.beginPath()
 ctx.arc(x1|0,y1|0,5,0,Math.PI*2)
@@ -36,7 +34,6 @@ ctx.fill()
 
 return {x1,y1,x2,y2}
 }
-
 
 
 
@@ -67,7 +64,6 @@ ctx.lineTo(x2|0,y2|0)
 
 ctx.stroke()
 
-
 ctx.fillStyle='#fff'
 ctx.beginPath()
 for(let p of pendulums){
@@ -93,7 +89,6 @@ ctx.fill()
 
 
 
-
 function drawTrail(ctx,x,y,color){
 ctx.fillStyle=color||'#fff'
 
@@ -104,7 +99,6 @@ ctx.fillRect(x|0,y|0,1,1)
 
 
 
-
 function clearCanvas(ctx,width,height){
 
 ctx.fillStyle='#000'
@@ -112,7 +106,6 @@ ctx.fillStyle='#000'
 
 ctx.fillRect(0,0,width,height)
 }
-
 
 
 function fadeCanvas(ctx,width,height,alpha){
