@@ -12,7 +12,6 @@ simulates chaotic double pendulum motion using both euler integration (fast but 
 - **chaotic tic tac toe** - play against minimax ai that has 60% randomness so its actually beatable, cells get stolen by pendulum collisions making the game completely unpredictable and chaotic
 - **ppl (visual programming)** - drag and drop block based programming language for controlling pendulum parameters, has blocks for physics constants integration methods and initial conditions
 - **precision challenge** - microscopic initial condition sensitivity test where you try to hit targets while avoiding obstacles by adjusting theta1 theta2 omega1 omega2 with sliders, shows how tiny changes create massive differences
-- **prophecy (bonus)** - fortune teller that uses pendulum chaos to answer yes/no/maybe questions, runs 8 second simulation with energy tracking and modular state management split across prophecy-state prophecy-game prophecy-render prophecy-controls and prophecy-energy files
 
 ## physics stuff
 
@@ -24,4 +23,4 @@ just open index.html in a browser, no build process no dependencies no framework
 
 ## file structure
 
-core physics in physics.js, integration methods split into euler.js and rk4.js, rendering utilities in canvas-utils.js, minimax ai in minimax.js, each feature has its own html file and the prophecy feature is modular with separate files for different concerns
+core physics in physics.js, integration methods split into euler.js and rk4.js, rendering utilities in canvas-utils.js, minimax ai in minimax.js, each feature has its own html file
